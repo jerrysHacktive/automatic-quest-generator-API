@@ -1,0 +1,22 @@
+{
+  "name": "quest-generator-api",
+  "version": "1.0.0",
+  "description": "This task is a continuation of the effort to streamline quest creation.The program will take in a location name, and use OpenTripMap to search for matching locations. The program should then show every fetched location as a list - and prompt the user to select one, the program should begin compiling that information into a quest object",
+  "main": "app.js",
+  "scripts": {
+    "dev": "nodemon app.js",
+    "prod": "node app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "bowoto jeremiah",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  },
+  "dependencies": {
+    "axios": "^1.11.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0"
+  }
+}
