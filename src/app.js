@@ -1,7 +1,7 @@
 const express = require("express");
 require("dotenv").config();
 const cors = require("cors");
-const questRoutes = require('./routes/questRoute');
+const questRoutes = require("./routes/questRoute");
 const logger = require("../src/utils/logger");
 const { errorHandler } = require("./middleware/errorHandler");
 
@@ -13,11 +13,10 @@ app.use(express.json()); // parse JSON bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 
 // Use quest routes
-app.use('/api/v1/quests', questRoutes);
+app.use("/api/v1/quests", questRoutes);
 
 // Use centralized error handler
 app.use(errorHandler);
-
 
 //App Port loaded from enviroment variables
 const APP_PORT = process.env.APP_PORT;
