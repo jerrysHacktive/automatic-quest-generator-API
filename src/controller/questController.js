@@ -34,26 +34,46 @@ const validateQuestInput = ({ place_id, display_name, lat, lon }) => {
   }
 };
 
-// Handle location search using LocationIQ API
+// Handle location search using LocationIQ and Wikipedia APIs
 const searchLocation = async (req, res, next) => {
   try {
     const { locationName } = req.body;
     validateSearchInput(locationName);
 
-    // Make request to LocationIQ Autocomplete API
-    const response = await axios.get(
-      "https://api.locationiq.com/v1/autocomplete.php",
-      {
-        params: {
-          key: process.env.LOCATIONIQ_API_KEY,
-          q: locationName,
-          limit: 10,
-          format: "json",
-          tag: "place:city", // Filter for cities to increase chance of wikipedia_extracts
-        },
-        timeout: 5000,
+    // using locationIQ Autocomplete API 
+    let response;
+    try {
+      response = await axios.get(
+        "https://api.locationiq.com/v1/autocomplete.php",
+        {
+          params: {
+            key: process.env.LOCATIONIQ_API_KEY,
+            q: locationName,
+            limit: 10,
+            format: "json",
+          },
+          timeout: 5000,
+        }
+      );
+    } catch (autocompleteError) {
+      if (autocompleteError.response?.status === 404) {
+        logger.info(
+          `Autocomplete failed for ${locationName}, trying Search API`
+        );
+        response = await axios.get("https://api.locationiq.com/v1/search.php", {
+          params: {
+            key: process.env.LOCATIONIQ_API_KEY,
+            q: locationName,
+            limit: 10,
+            format: "json",
+            extratags: 1,
+          },
+          timeout: 5000,
+        });
+      } else {
+        throw autocompleteError;
       }
-    );
+    }
 
     // Validate LocationIQ response
     if (!Array.isArray(response.data)) {
@@ -63,16 +83,46 @@ const searchLocation = async (req, res, next) => {
       });
     }
 
-    // Map LocationIQ response to simplified location objects
-    const locations = response.data.map((loc) => ({
-      place_id: loc.place_id || "unknown",
-      display_name: loc.display_name || "Unknown Location",
-      lat: loc.lat || "0",
-      lon: loc.lon || "0",
-      wikipedia_extracts: loc.wikipedia_extracts || {
-        text: "No Wikipedia data available",
-      },
-    }));
+    // Map LocationIQ response and fetch Wikipedia extracts if needed
+    const locations = await Promise.all(
+      response.data.map(async (loc) => {
+        let wikipediaExtract = loc.wikipedia_extracts || {
+          text: "No Wikipedia data available",
+        };
+        if (!loc.wikipedia_extracts) {
+          try {
+            const wikiUrl = loc.extratags?.wikipedia;
+            let wikiTitle = loc.display_name.split(",")[0].trim();
+            if (wikiUrl) {
+              wikiTitle = wikiUrl.split("/").pop().replace("en:", "");
+            }
+            const wikiResponse = await axios.get(
+              `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(
+                wikiTitle
+              )}`,
+              {
+                timeout: 5000,
+              }
+            );
+            wikipediaExtract = {
+              text: wikiResponse.data.extract || "No Wikipedia data available",
+            };
+            logger.info(`Fetched Wikipedia extract for ${wikiTitle}`);
+          } catch (wikiError) {
+            logger.warn(
+              `Wikipedia API failed for ${loc.display_name}: ${wikiError.message}`
+            );
+          }
+        }
+        return {
+          place_id: loc.place_id || "unknown",
+          display_name: loc.display_name || "Unknown Location",
+          lat: loc.lat || "0",
+          lon: loc.lon || "0",
+          wikipedia_extracts: wikipediaExtract,
+        };
+      })
+    );
 
     logger.info(
       `Fetched ${locations.length} locations for query: ${locationName}`
@@ -80,7 +130,6 @@ const searchLocation = async (req, res, next) => {
     res.json({ locations });
   } catch (error) {
     if (error.response) {
-      // Handle specific LocationIQ API errors
       const status = error.response.status;
       const errorDetails = {
         status,
@@ -135,11 +184,10 @@ const createQuestFromLocation = async (req, res, next) => {
       wikipedia_extracts?.text &&
       wikipedia_extracts.text !== "No Wikipedia data available"
         ? `Summarize the following into a fun, two-sentence description for a quest: ${wikipedia_extracts.text}`
-        : `Create a fun, two-sentence description for a quest based on the location: ${display_name}.`;
+        : `Generate a concise Wikipedia-style description (3-4 sentences) for the location "${display_name}", including its historical or cultural significance, as if it were a Wikipedia entry. Then, summarize it into a fun, two-sentence description for a quest.`;
 
     // Call Gemini API
-    let description =
-      "Explore this mysterious location and uncover its secrets!";
+    let description;
     try {
       const geminiResponse = await axios.post(
         "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent",
@@ -158,11 +206,13 @@ const createQuestFromLocation = async (req, res, next) => {
         logger.warn(
           `No description generated for ${display_name}, using default`
         );
+        description = `Embark on a thrilling adventure in ${display_name}! Uncover the hidden stories that await in this iconic place.`;
       }
     } catch (geminiError) {
       logger.warn(
         `Gemini API failed for ${display_name}: ${geminiError.message}, using default description`
       );
+      description = `Embark on a thrilling adventure in ${display_name}! Uncover the hidden stories that await in this iconic place.`;
     }
 
     // Create quest object
@@ -211,7 +261,6 @@ const createQuestFromLocation = async (req, res, next) => {
     res.json(quest);
   } catch (error) {
     if (error.response) {
-      // Handle Gemini API errors
       const status = error.response.status;
       const errorDetails = {
         status,
