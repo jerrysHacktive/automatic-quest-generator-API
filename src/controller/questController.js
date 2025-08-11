@@ -49,7 +49,7 @@ const searchLocation = async (req, res, next) => {
           q: locationName,
           limit: 10,
           format: "json",
-          tag: "place:city", // Filter for cities to increase chance of wikipedia_extracts
+         // tag: "place:city", // Filter for cities to increase chance of wikipedia_extracts
         },
         timeout: 5000,
       }
