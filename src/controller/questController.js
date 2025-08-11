@@ -49,6 +49,7 @@ const searchLocation = async (req, res, next) => {
           q: locationName,
           limit: 10,
           format: "json",
+          tag: "place:city", // Filter for cities to increase chance of wikipedia_extracts
         },
         timeout: 5000,
       }
@@ -68,7 +69,9 @@ const searchLocation = async (req, res, next) => {
       display_name: loc.display_name || "Unknown Location",
       lat: loc.lat || "0",
       lon: loc.lon || "0",
-      wikipedia_extracts: loc.wikipedia_extracts || { text: "" },
+      wikipedia_extracts: loc.wikipedia_extracts || {
+        text: "No Wikipedia data available",
+      },
     }));
 
     logger.info(
@@ -117,13 +120,22 @@ const searchLocation = async (req, res, next) => {
 // Handle quest creation
 const createQuestFromLocation = async (req, res, next) => {
   try {
-    const { place_id, display_name, lat, lon, wikipedia_extracts } = req.body;
+    const {
+      place_id,
+      display_name,
+      lat,
+      lon,
+      wikipedia_extracts,
+      saveToCsv = true,
+    } = req.body;
     validateQuestInput({ place_id, display_name, lat, lon });
 
     // Prepare prompt for Gemini API
-    const prompt = wikipedia_extracts?.text
-      ? `Summarize the following into a fun, two-sentence description for a quest: ${wikipedia_extracts.text}`
-      : `Create a fun, two-sentence description for a quest based on the location: ${display_name}.`;
+    const prompt =
+      wikipedia_extracts?.text &&
+      wikipedia_extracts.text !== "No Wikipedia data available"
+        ? `Summarize the following into a fun, two-sentence description for a quest: ${wikipedia_extracts.text}`
+        : `Create a fun, two-sentence description for a quest based on the location: ${display_name}.`;
 
     // Call Gemini API
     let description =
@@ -164,29 +176,35 @@ const createQuestFromLocation = async (req, res, next) => {
       price: null,
     });
 
-    // Save quest to CSV file
-    try {
-      const csvWriter = createObjectCsvWriter({
-        path: "quests.csv",
-        header: [
-          { id: "title", title: "Title" },
-          { id: "aura", title: "Aura" },
-          { id: "category", title: "Category" },
-          { id: "description", title: "Description" },
-          { id: "latitude", title: "Latitude" },
-          { id: "longitude", title: "Longitude" },
-          { id: "price", title: "Price" },
-        ],
-        append: true, // Append to file instead of overwriting
-      });
+    // Save quest to CSV file if saveToCsv is true
+    if (saveToCsv) {
+      try {
+        const csvWriter = createObjectCsvWriter({
+          path: "quests.csv",
+          header: [
+            { id: "title", title: "Title" },
+            { id: "aura", title: "Aura" },
+            { id: "category", title: "Category" },
+            { id: "description", title: "Description" },
+            { id: "latitude", title: "Latitude" },
+            { id: "longitude", title: "Longitude" },
+            { id: "price", title: "Price" },
+          ],
+          append: true,
+        });
 
-      await csvWriter.writeRecords([quest]);
-      logger.info(`Saved quest for ${display_name} to quests.csv`);
-    } catch (csvError) {
-      logger.warn(`Failed to save quest to CSV: ${csvError.message}`);
-      throw new APIError("Failed to save quest to CSV", {
-        error: csvError.message,
-      });
+        await csvWriter.writeRecords([quest]);
+        logger.info(
+          `Saved quest for ${display_name} to quests.csv, ready for Git commit`
+        );
+      } catch (csvError) {
+        logger.warn(`Failed to save quest to CSV: ${csvError.message}`);
+        throw new APIError("Failed to save quest to CSV", {
+          error: csvError.message,
+        });
+      }
+    } else {
+      logger.info(`Skipped saving quest for ${display_name} to CSV`);
     }
 
     logger.info(`Created quest for ${display_name}`);
