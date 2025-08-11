@@ -1,0 +1,109 @@
+body {
+    position: relative;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+nav {
+    background-color: rgba(11, 102, 207, 0.932);
+    padding: 10px;
+    position: fixed;
+    right: 0;
+    left: 0;
+    top: 0;
+}
+
+h1 {
+    font-size: 30px;
+    margin: 5px 0 5px 0;
+    color: white;
+}
+
+.main {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.location-form {
+    padding: 3em 2em 4em 2em;
+    border: 3px solid rgb(7, 143, 197);
+    border-radius: 10px;
+}
+
+.locations-details {
+    vertical-align: top;
+}
+
+h2 {
+    margin: 0;
+    color: rgb(10, 104, 211);
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 30px;
+    vertical-align: top;
+}
+
+input {
+    padding: 1em 5em 1em 1em;
+    border-radius: 5px;
+    border-color: rgb(7, 143, 197);
+    border-style: solid;
+    display: block;
+    margin: 0 0 2em 0;
+}
+
+input::placeholder {
+    font-style: italic;
+}
+
+textarea {
+    padding: 1em;
+    border-radius: 5px;
+    border-color: rgb(7, 143, 197);
+    border-style: solid;
+    display: block;
+    margin: 0 0 2em 0;
+    width: 100%;
+    resize: vertical;
+}
+
+.search-btn {
+    border: 1px solid rgb(7, 143, 197);
+    background-color: white;
+    padding: 1em 10em;
+    border-radius: 4px;
+    transition: background-color 0.15s, color 0.15s;
+    color: rgb(7, 143, 197);
+}
+
+.search-btn:hover {
+    background-color: rgb(7, 143, 197);
+    color: white;
+}
+
+.search-btn:active {
+    background-color: white;
+    color: rgb(7, 143, 197);
+}
+
+.form-field {
+    color: rgba(7, 143, 197, 0.815);
+    margin: 0 0 0.5em 0;
+}
+
+#locations-list,
+#quest-result {
+    margin-top: 2em;
+    padding: 1em;
+    border: 1px solid rgb(7, 143, 197);
+    border-radius: 5px;
+}
+
+#locations-list p,
+#quest-result p {
+    margin: 0.5em 0;
+}
+
+#locations-list button {
+    margin: 0.5em 0;
+}

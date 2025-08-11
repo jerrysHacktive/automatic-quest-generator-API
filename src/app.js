@@ -1,27 +1,24 @@
 const express = require("express");
-require("dotenv").config();
-const cors = require("cors");
+const dotenv = require("dotenv");
 const questRoutes = require("./routes/questRoute");
-const logger = require("../src/utils/logger");
+const logger = require("./utils/logger");
 const { errorHandler } = require("./middleware/errorHandler");
+const path = require("path");
+
+dotenv.config();
 
 const app = express();
-
-//middleware
-app.use(cors("*")); //allows frontend request
-app.use(express.json()); // parse JSON bodies
+app.use(express.json()); // Parse JSON bodies
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
 
-// Use quest routes
+//  files from the public directory
+app.use(express.static(path.join(__dirname, "public")));
+
 app.use("/api/v1/quests", questRoutes);
 
-// Use centralized error handler
 app.use(errorHandler);
 
-//App Port loaded from enviroment variables
-const APP_PORT = process.env.APP_PORT;
-
-// start the server
+const APP_PORT = process.env.APP_PORT || 3000;
 app.listen(APP_PORT, () => {
-  logger.info(`App is running on Port: ${APP_PORT}`);
+  logger.info(`Server running on port ${APP_PORT}`);
 });

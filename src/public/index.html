@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+  <title>quest-generator</title>
+</head>
+<body>
+  <nav>
+    <h1>quest-generator</h1>
+  </nav>
+  <div class="main">
+    <div class="location-form">
+      <div class="location-details">
+        <h2>Search your location</h2>
+        <p class="form-field">Location name</p>
+        <form id="search-form">
+          <input type="text" id="location-name" placeholder="search location">
+          <button class="search-btn" type="submit">Search</button>
+        </form>
+        <div id="locations-list"></div>
+        <form id="quest-form" style="display: none;">
+          <h2>Create Quest</h2>
+          <p class="form-field">Selected Location</p>
+          <input type="hidden" id="place-id">
+          <input type="text" id="display-name" readonly>
+          <p class="form-field">Latitude</p>
+          <input type="text" id="latitude" readonly>
+          <p class="form-field">Longitude</p>
+          <input type="text" id="longitude" readonly>
+          <p class="form-field">Wikipedia Extracts</p>
+          <textarea id="wikipedia-extracts" readonly></textarea>
+          <p class="form-field">Save to CSV</p>
+          <label><input type="checkbox" id="save-to-csv" checked> Save quest to CSV</label>
+          <button class="search-btn" type="submit">Create Quest</button>
+        </form>
+        <div id="quest-result"></div>
+      </div>
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
