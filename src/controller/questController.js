@@ -40,6 +40,7 @@ const searchLocation = async (req, res, next) => {
     const { locationName } = req.body;
     validateSearchInput(locationName);
 
+<<<<<<< HEAD
     // using locationIQ Autocomplete API 
     let response;
     try {
@@ -72,6 +73,20 @@ const searchLocation = async (req, res, next) => {
         });
       } else {
         throw autocompleteError;
+=======
+    // Make request to LocationIQ Autocomplete API
+    const response = await axios.get(
+      "https://api.locationiq.com/v1/autocomplete.php",
+      {
+        params: {
+          key: process.env.LOCATIONIQ_API_KEY,
+          q: locationName,
+          limit: 10,
+          format: "json",
+         // tag: "place:city", // Filter for cities to increase chance of wikipedia_extracts
+        },
+        timeout: 5000,
+>>>>>>> 508865bf9495a1eb7732bef30fe259ed7efa8e88
       }
     }
 
