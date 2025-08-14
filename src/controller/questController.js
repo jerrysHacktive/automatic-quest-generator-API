@@ -22,12 +22,14 @@ const validateSearchInput = (locationName) => {
 };
 
 // Validate quest creation input
-const validateQuestInput = ({ place_id, display_name, lat, lon }) => {
+const validateQuestInput = ({ place_id, display_name, lat, lon, price }) => {
   const errors = [];
   if (!place_id) errors.push("place_id is required");
   if (!display_name) errors.push("display_name is required");
   if (!lat || isNaN(lat)) errors.push("lat is required and must be a number");
   if (!lon || isNaN(lon)) errors.push("lon is required and must be a number");
+  if (price !== undefined && (isNaN(price) || price < 0))
+    errors.push("price must be a non-negative number or undefined");
 
   if (errors.length > 0) {
     throw new ValidationError("Invalid quest input data", { errors });
@@ -40,8 +42,7 @@ const searchLocation = async (req, res, next) => {
     const { locationName } = req.body;
     validateSearchInput(locationName);
 
-<<<<<<< HEAD
-    // using locationIQ Autocomplete API 
+    // Try Autocomplete API first
     let response;
     try {
       response = await axios.get(
@@ -73,20 +74,6 @@ const searchLocation = async (req, res, next) => {
         });
       } else {
         throw autocompleteError;
-=======
-    // Make request to LocationIQ Autocomplete API
-    const response = await axios.get(
-      "https://api.locationiq.com/v1/autocomplete.php",
-      {
-        params: {
-          key: process.env.LOCATIONIQ_API_KEY,
-          q: locationName,
-          limit: 10,
-          format: "json",
-         // tag: "place:city", // Filter for cities to increase chance of wikipedia_extracts
-        },
-        timeout: 5000,
->>>>>>> 508865bf9495a1eb7732bef30fe259ed7efa8e88
       }
     }
 
@@ -238,7 +225,7 @@ const createQuestFromLocation = async (req, res, next) => {
       description,
       latitude: lat,
       longitude: lon,
-      price: null,
+      // No price field set
     });
 
     // Save quest to CSV file if saveToCsv is true
