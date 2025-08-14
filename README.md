@@ -1,5 +1,5 @@
-Quest_Generator
-Quest_Generator is a web application that allows users to search for locations, view their details, and create adventure quests based on real-world places. Built with Node.js, Express.js, and vanilla JavaScript, it integrates LocationIQ for geocoding, Wikipedia API for location descriptions, and Google Gemini API for generating engaging quest descriptions when Wikipedia data is unavailable. Quests are saved to a CSV file for persistence and can be extended for future features like user-defined prices or database storage.
+
+Quest_Generator-Api is a web application that allows users to search for locations, view their details, and create adventure quests based on real-world places. Built with Node.js, Express.js, and vanilla JavaScript, it integrates LocationIQ for geocoding, Wikipedia API for location descriptions, and Google Gemini API for generating engaging quest descriptions when Wikipedia data is unavailable. Quests are saved to a CSV file for persistence and can be extended for future features like user-defined prices or database storage.
 Features
 
 Location Search: Search for locations using LocationIQ's Autocomplete and Search APIs.
